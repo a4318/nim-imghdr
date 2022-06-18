@@ -125,23 +125,36 @@ proc testJFIF(value : seq[int8]): ImageType =
     # tests: "JFIF"
     return if value[6..9] == "JFIF": JPEG else: Other
 
+proc testJPEG(value : seq[int8]): ImageType =
+    # tests: FFD8FFDB
+    return if value[0] == 277 and value[1] == 216 and value[2] == 277 and value[3] == 219: JPEG else: Other
+
 var JFIFmagic = [0x4a.uint8, 0x46, 0x49, 0x46]
 
-proc checkJFIF(value : ptr UncheckedArray[uint8]): ImageType =
-    # tests: "JFIF" 4a,46,49,46
-    return if equalMem(value[6].addr, JFIFmagic[0].addr, 4): JPEG else: Other
+var EXIFmagic = [0x45.uint8, 0x78, 0x69, 0x66]
 
+var noexif = [0xFF.uint8, 0xD8, 0xFF, 0xDB]
+
+proc checkJPEG(value : ptr UncheckedArray[uint8]): ImageType =
+    # tests: "JFIF" 4a,46,49,46
+    # tests: "Exif" 45,78,69,66
+    # tests: FFD8FFDB
+    return if equalMem(value[6].addr, JFIFmagic[0].addr, 4) or equalMem(value[6].addr, EXIFmagic[0].addr, 4) or equalMem(value[0].addr, noexif[0].addr, 4) : JPEG else: Other
 
 proc testEXIF(value : seq[int8]): ImageType =
     # tests: "Exif"
     return if value[6..9] == "Exif": JPEG else: Other
 
-var EXIFmagic = [0x45.uint8, 0x78, 0x69, 0x66]
+#[
+proc checkJFIF(value : ptr UncheckedArray[uint8]): ImageType =
+    # tests: "JFIF" 4a,46,49,46
+    return if equalMem(value[6].addr, JFIFmagic[0].addr, 4): JPEG else: Other
+
 
 proc checkEXIF(value : ptr UncheckedArray[uint8]): ImageType =
     # tests: "Exif" 45,78,69,66
     return if equalMem(value[6].addr, EXIFmagic[0].addr, 4): JPEG else: Other
-
+]#
 
 proc testGIF(value : seq[int8]): ImageType =
     # tests: "GIF87a" or "GIF89a"
@@ -180,7 +193,7 @@ proc checkRGB(value : ptr UncheckedArray[uint8]): ImageType =
 
 proc testPBM(value : seq[int8]): ImageType =
     # tests: "P[1,4][ \t\n\r]"
-    return if len(value) >= 3 and value[0] == 80 and (value[1] == 49 or value[1] == 52) and (value[3] == 32 or value[3] == 9 or value[3] == 10 or value[3] == 13): PBM else: Other
+    return if len(value) >= 3 and value[0] == 80 and (value[1] == 49 or value[1] == 52) and (value[2] == 32 or value[3] == 9 or value[2] == 10 or value[2] == 13): PBM else: Other
 
 proc checkPBM(value : ptr UncheckedArray[uint8]): ImageType =
     # tests: "P[1,4][ \t\n\r]"
@@ -887,7 +900,7 @@ proc testImage*(filename : string): ImageType {.gcsafe.} =
 proc testImage*(data : seq[int8]): ImageType =
     ## Determines the format of the image from the bytes given.
 
-    let testers = @[testPNG, testJFIF, testEXIF, testGIF, testTIFF, testRGB, testPBM,
+    let testers = @[testPNG, testJFIF, testEXIF, testJPEG, testGIF, testTIFF, testRGB, testPBM,
         testPGM, testPPM, testPAM, testBMP, testXBM, testRast, testCRW, testCR2,
         testSVG, testMRW, testX3F, testWEBP, testXCF, testGKSM, testPM, testFITS,
         testXPM, testXPM2, testPS, testXFIG, testIRIS, testSPIFF, testGEM, testAmiga,
@@ -904,7 +917,7 @@ proc testImage*(data : seq[int8]): ImageType =
     return Other
 
 proc checkImage*(data : ptr UncheckedArray[uint8]): ImageType =
-    let checkers = @[checkJFIF, checkEXIF, checkPNG, checkGIF, checkTIFF, checkRGB, checkPBM,
+    let checkers = @[checkJPEG, checkPNG, checkGIF, checkTIFF, checkRGB, checkPBM,
         checkPGM, checkPPM, checkPAM, checkBMP, checkXBM, checkRast, checkCRW, checkCR2,
         checkSVG, checkMRW, checkX3F, checkWEBP, checkXCF, checkGKSM, checkPM, checkFITS,
         checkXPM, checkXPM2, checkPS, checkXFIG, checkIRIS, checkSPIFF, checkGEM, checkAmiga,
