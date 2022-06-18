@@ -5,10 +5,11 @@ nim-imghdr is a Nim module for determining the type of an image from a given fil
 It can detect many common image formats. nim-imghdr is a port of Python's imghdr module.
 
 Usage:
-    
+
     testImage(file : File)
     testImage(filename : string)
     testImage(data : seq[int8])
+    checkImage(data : ptr UncheckedArray[uint8])
 
 nim-imghdr can also be used as a command line program:
 
