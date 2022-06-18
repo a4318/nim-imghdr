@@ -20,7 +20,7 @@
 ## - PPM (portable pixmap) format - ImageType.PPM
 ## - PAM format - ImageType.PAM
 ## - BMP (bitmap) format - ImageType.BMP
-## - XMB (X10 or X11 bitmap) format - ImageType.XMB
+## - XBM (X10 or X11 bitmap) format - ImageType.XBM
 ## - Rast (Sun raster) format - ImageType.Rast
 ## - CRW (Canon camera RAW) format - ImageType.CRW
 ## - CR2 (Canon camera RAW 2) format - ImageType.CR2
@@ -100,7 +100,7 @@ proc `==`(i : seq[int8], s : string): bool =
 
 
 type ImageType* {.pure.} = enum
-    PNG, JPEG, GIF, TIFF, RGB, PBM, PGM, PPM, PAM, BMP, XMB, CRW, CR2, SVG, MRW, X3F, WEBP, XCF,
+    PNG, JPEG, GIF, TIFF, RGB, PBM, PGM, PPM, PAM, BMP, XBM, CRW, CR2, SVG, MRW, X3F, WEBP, XCF,
     GKSM, PM, FITS, XPM, XPM2, PS, Xfig, IRIS, Rast, SPIFF, GEM, Amiga, TIB, JB2, CIN, PSP,
     EXR, CALS, DPX, SYM, SDR, IMG, ADEX, NITF, BigTIFF, GX2, PAT, CPT, SYW, DWG, PSD, FBM,
     HDR, MP, DRW, Micrografx, PIC, VDI, ICO, JP2, YCC, FPX, DCX, ITC, NIFF, WMP, BPG, FLIF, PDF,
@@ -184,26 +184,26 @@ proc testPBM(value : seq[int8]): ImageType =
 
 proc checkPBM(value : ptr UncheckedArray[uint8]): ImageType =
     # tests: "P[1,4][ \t\n\r]"
-    return if value[0] == 80.uint8 and (value[1] == 49.uint8 or value[1] == 52.uint8) and (value[3] == 32.uint8 or value[3] == 9.uint8 or value[3] == 10.uint8 or value[3] == 13.uint8): PBM else: Other
+    return if value[0] == 0x50.uint8 and (value[1] == 0x31.uint8 or value[1] == 0x34.uint8) and (value[2] == 0x20.uint8 or value[2] == 0x09.uint8 or value[2] == 0x0A.uint8 or value[2] == 0x0D.uint8): PBM else: Other
 
 proc testPGM(value : seq[int8]): ImageType =
     # tests: "P[2,5][ \t\n\r]"
-    return if len(value) >= 3 and value[0] == 80 and (value[1] == 50 or value[1] == 53) and (value[3] == 32 or value[3] == 9 or value[3] == 10 or value[3] == 13): PGM else: Other
+    return if len(value) >= 3 and value[0] == 80 and (value[1] == 50 or value[1] == 53) and (value[2] == 32 or value[2] == 9 or value[2] == 10 or value[2] == 13): PGM else: Other
 
 
 proc checkPGM(value : ptr UncheckedArray[uint8]): ImageType =
     # tests: "P[2,5][ \t\n\r]"
-    return if value[0] == 80.uint8 and (value[1] == 50.uint8 or value[1] == 53.uint8) and (value[3] == 32.uint8 or value[3] == 9.uint8 or value[3] == 10.uint8 or value[3] == 13.uint8): PGM else: Other
+    return if value[0] == 0x50.uint8 and (value[1] == 0x32.uint8 or value[1] == 0x35.uint8) and (value[2] == 0x20.uint8 or value[2] == 0x09.uint8 or value[2] == 0x0A.uint8 or value[2] == 0x0D.uint8) : PGM else: Other
 
 
 proc testPPM(value : seq[int8]): ImageType =
     # tests: "P[3,6][ \t\n\r]"
-    return if len(value) >= 3 and value[0] == 80 and (value[1] == 51 or value[1] == 54) and (value[3] == 32 or value[3] == 9 or value[3] == 10 or value[3] == 13): PPM else: Other
+    return if len(value) >= 3 and value[0] == 80 and (value[1] == 51 or value[1] == 54) and (value[2] == 32 or value[2] == 9 or value[2] == 10 or value[2] == 13): PPM else: Other
 
 
 proc checkPPM(value: ptr UncheckedArray[uint8]): ImageType =
     # tests: "P[3,6][ \t\n\r]"
-    return if value[0] == 80.uint8 and (value[1] == 51.uint8 or value[1] == 54.uint8) and (value[3] == 32.uint8 or value[3] == 9.uint8 or value[3] == 10.uint8 or value[3] == 13.uint8): PPM else: Other
+    return if value[0] == 0x50.uint8 and (value[1] == 0x33.uint8 or value[1] == 0x36.uint8) and (value[2] == 0x20.uint8 or value[2] == 0x09.uint8 or value[2] == 0x0A.uint8 or value[2] == 0x0D.uint8) : PPM else: Other
 
 
 proc testPAM(value : seq[int8]): ImageType =
@@ -228,15 +228,15 @@ proc checkBMP(value: ptr UncheckedArray[uint8]): ImageType =
     return if equalMem(value[0].addr, BMPmagic[0].addr, 2): BMP else: Other
 
 
-proc testXMB(value : seq[int8]): ImageType =
+proc testXBM(value : seq[int8]): ImageType =
     # tests: "#define "
-    return if value[0..6] == "#define ": XMB else: Other
+    return if value[0..6] == "#define ": XBM else: Other
 
-var XMBmagic = [0x23.uint8, 0x64, 0x65, 0x66, 0x69, 0x6e, 0x65, 20]
+var XBMmagic = [0x23.uint8, 0x64, 0x65, 0x66, 0x69, 0x6e, 0x65, 0x20]
 
-proc checkXMB(value: ptr UncheckedArray[uint8]): ImageType =
+proc checkXBM(value: ptr UncheckedArray[uint8]): ImageType =
     # tests: "#define " 23,64,65,66,69,6e,65,20
-    return if equalMem(value[0].addr, XMBmagic[0].addr, 8): XMB else: Other
+    return if equalMem(value[0].addr, XBMmagic[0].addr, 8): XBM else: Other
 
 
 proc testRast(value : seq[int8]): ImageType =
@@ -888,7 +888,7 @@ proc testImage*(data : seq[int8]): ImageType =
     ## Determines the format of the image from the bytes given.
 
     let testers = @[testPNG, testJFIF, testEXIF, testGIF, testTIFF, testRGB, testPBM,
-        testPGM, testPPM, testPAM, testBMP, testXMB, testRast, testCRW, testCR2,
+        testPGM, testPPM, testPAM, testBMP, testXBM, testRast, testCRW, testCR2,
         testSVG, testMRW, testX3F, testWEBP, testXCF, testGKSM, testPM, testFITS,
         testXPM, testXPM2, testPS, testXFIG, testIRIS, testSPIFF, testGEM, testAmiga,
         testTIB, testJB2, testCIN, testPSP, testEXR, testCALS, testDPX, testSYM,
@@ -903,9 +903,9 @@ proc testImage*(data : seq[int8]): ImageType =
             return tester(data)
     return Other
 
-proc testImage*(data : ptr UncheckedArray[uint8]): ImageType =
+proc checkImage*(data : ptr UncheckedArray[uint8]): ImageType =
     let checkers = @[checkJFIF, checkEXIF, checkPNG, checkGIF, checkTIFF, checkRGB, checkPBM,
-        checkPGM, checkPPM, checkPAM, checkBMP, checkXMB, checkRast, checkCRW, checkCR2,
+        checkPGM, checkPPM, checkPAM, checkBMP, checkXBM, checkRast, checkCRW, checkCR2,
         checkSVG, checkMRW, checkX3F, checkWEBP, checkXCF, checkGKSM, checkPM, checkFITS,
         checkXPM, checkXPM2, checkPS, checkXFIG, checkIRIS, checkSPIFF, checkGEM, checkAmiga,
         checkTIB, checkJB2, checkCIN, checkPSP, checkEXR, checkCALS, checkDPX, checkSYM,
