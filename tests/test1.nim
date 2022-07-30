@@ -21,6 +21,11 @@ test "check without JFIF or Exif":
 
   check checkImage(cast[ptr UncheckedArray[uint8]](f.mem)) == JPEG
 
+test "check JPG in binary format":
+  let f = memfiles.open("tests/images/FFD8FFDB2.jpg", mode = fmRead, mappedSize = -1)
+
+  check checkImage(cast[ptr UncheckedArray[uint8]](f.mem), 1) == JPEG
+
 test "test without JFIF or Exif":
   let f = memfiles.open("tests/images/FFD8FFDB.jpeg", mode = fmRead, mappedSize = -1)
 
