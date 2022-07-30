@@ -80,6 +80,7 @@
 
 
 import os
+import strutils
 
 
 proc int2ascii(i : seq[int8]): string =
@@ -100,11 +101,14 @@ proc `==`(i : seq[int8], s : string): bool =
 
 
 type ImageType* {.pure.} = enum
-    PNG, JPEG, GIF, TIFF, RGB, PBM, PGM, PPM, PAM, BMP, XBM, CRW, CR2, SVG, MRW, X3F, WEBP, XCF,
+    PNG, JPG, GIF, TIFF, RGB, PBM, PGM, PPM, PAM, BMP, XBM, CRW, CR2, SVG, MRW, X3F, WEBP, XCF,
     GKSM, PM, FITS, XPM, XPM2, PS, Xfig, IRIS, Rast, SPIFF, GEM, Amiga, TIB, JB2, CIN, PSP,
     EXR, CALS, DPX, SYM, SDR, IMG, ADEX, NITF, BigTIFF, GX2, PAT, CPT, SYW, DWG, PSD, FBM,
     HDR, MP, DRW, Micrografx, PIC, VDI, ICO, JP2, YCC, FPX, DCX, ITC, NIFF, WMP, BPG, FLIF, PDF,
     Other
+
+proc getExt*(src: ImageType) : string =
+    return ($src).toLowerAscii
 
 
 proc testImage*(data : seq[int8]): ImageType {.gcsafe.}
@@ -123,11 +127,11 @@ proc checkPNG(value : ptr UncheckedArray[uint8], pos: Natural = 0): ImageType =
 
 proc testJFIF(value : seq[int8]): ImageType =
     # tests: "JFIF"
-    return if value[6..9] == "JFIF": JPEG else: Other
+    return if value[6..9] == "JFIF": JPG else: Other
 
 proc testJPEG(value : seq[int8]): ImageType =
     # tests: FFD8FFDB
-    return if value[0] == 277 and value[1] == 216 and value[2] == 277 and value[3] == 219: JPEG else: Other
+    return if value[0] == 277 and value[1] == 216 and value[2] == 277 and value[3] == 219: JPG else: Other
 
 var JFIFmagic = [0x4a.uint8, 0x46, 0x49, 0x46]
 
@@ -139,21 +143,21 @@ proc checkJPEG*(value : ptr UncheckedArray[uint8], pos: Natural): ImageType =
     # tests: "JFIF" 4a,46,49,46
     # tests: "Exif" 45,78,69,66
     # tests: FFD8FFDB
-    return if equalMem(value[pos + 6].addr, JFIFmagic[0].addr, 4) or equalMem(value[pos + 6].addr, EXIFmagic[0].addr, 4) or equalMem(value[pos].addr, noexif[0].addr, 4) : JPEG else: Other
+    return if equalMem(value[pos + 6].addr, JFIFmagic[0].addr, 4) or equalMem(value[pos + 6].addr, EXIFmagic[0].addr, 4) or equalMem(value[pos].addr, noexif[0].addr, 4) : JPG else: Other
 
 proc testEXIF(value : seq[int8]): ImageType =
     # tests: "Exif"
-    return if value[6..9] == "Exif": JPEG else: Other
+    return if value[6..9] == "Exif": JPG else: Other
 
 #[
 proc checkJFIF(value : ptr UncheckedArray[uint8]): ImageType =
     # tests: "JFIF" 4a,46,49,46
-    return if equalMem(value[6].addr, JFIFmagic[0].addr, 4): JPEG else: Other
+    return if equalMem(value[6].addr, JFIFmagic[0].addr, 4): JPG else: Other
 
 
 proc checkEXIF(value : ptr UncheckedArray[uint8]): ImageType =
     # tests: "Exif" 45,78,69,66
-    return if equalMem(value[6].addr, EXIFmagic[0].addr, 4): JPEG else: Other
+    return if equalMem(value[6].addr, EXIFmagic[0].addr, 4): JPG else: Other
 ]#
 
 proc testGIF(value : seq[int8]): ImageType =

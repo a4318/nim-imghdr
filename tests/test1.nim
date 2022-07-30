@@ -9,27 +9,27 @@ test "check PNG":
 
 test "check JFIF":
   let f = memfiles.open("tests/images/JFIF.jpg", mode = fmRead, mappedSize = -1)
-  check checkImage(cast[ptr UncheckedArray[uint8]](f.mem)) == JPEG
+  check checkImage(cast[ptr UncheckedArray[uint8]](f.mem)) == JPG
 
 test "check EXIF":
   let f = memfiles.open("tests/images/Exif.JPG", mode = fmRead, mappedSize = -1)
 
-  check checkImage(cast[ptr UncheckedArray[uint8]](f.mem)) == JPEG
+  check checkImage(cast[ptr UncheckedArray[uint8]](f.mem)) == JPG
 
 test "check without JFIF or Exif":
   let f = memfiles.open("tests/images/FFD8FFDB.jpeg", mode = fmRead, mappedSize = -1)
 
-  check checkImage(cast[ptr UncheckedArray[uint8]](f.mem)) == JPEG
+  check checkImage(cast[ptr UncheckedArray[uint8]](f.mem)) == JPG
 
 test "check JPG in binary format":
   let f = memfiles.open("tests/images/FFD8FFDB2.jpg", mode = fmRead, mappedSize = -1)
 
-  check checkImage(cast[ptr UncheckedArray[uint8]](f.mem), 1) == JPEG
+  check checkImage(cast[ptr UncheckedArray[uint8]](f.mem), 1) == JPG
 
 test "test without JFIF or Exif":
   let f = memfiles.open("tests/images/FFD8FFDB.jpeg", mode = fmRead, mappedSize = -1)
 
-  check checkImage(cast[ptr UncheckedArray[uint8]](f.mem)) == JPEG
+  check checkImage(cast[ptr UncheckedArray[uint8]](f.mem)) == JPG
 
 test "check GIF89a":
   let f = memfiles.open("tests/images/test.gif", mode = fmRead, mappedSize = -1)
@@ -141,3 +141,8 @@ test "check SPIFF":
   let f = memfiles.open("tests/images/test.spf", mode = fmRead, mappedSize = -1)
   check checkImage(cast[ptr UncheckedArray[uint8]](f.mem)) == SPIFF
 ]#
+
+test "check EXIF":
+  let f = memfiles.open("tests/images/Exif.JPG", mode = fmRead, mappedSize = -1)
+  let i = checkImage(cast[ptr UncheckedArray[uint8]](f.mem))
+  check getExt(i) == "jpg"
