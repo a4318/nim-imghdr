@@ -146,3 +146,35 @@ test "check EXIF":
   let f = memfiles.open("tests/images/Exif.JPG", mode = fmRead, mappedSize = -1)
   let i = checkImage(cast[ptr UncheckedArray[uint8]](f.mem))
   check getExt(i) == "jpg"
+
+test "get size PNG":
+  let f = memfiles.open("tests/images/test.png", mode = fmRead, mappedSize = -1)
+  check getImageTypeSize(cast[ptr UncheckedArray[uint8]](f.mem)) == (PNG, 100, 100)
+
+test "get size JFIF":
+  let f = memfiles.open("tests/images/JFIF.jpg", mode = fmRead, mappedSize = -1)
+  check getImageTypeSize(cast[ptr UncheckedArray[uint8]](f.mem)) == (JPG, 100, 100)
+
+test "get size EXIF":
+  let f = memfiles.open("tests/images/Exif.JPG", mode = fmRead, mappedSize = -1)
+
+  check getImageTypeSize(cast[ptr UncheckedArray[uint8]](f.mem)) == (JPG, 100, 100)
+
+test "get size without JFIF or Exif":
+  let f = memfiles.open("tests/images/FFD8FFDB.jpeg", mode = fmRead, mappedSize = -1)
+
+  check getImageTypeSize(cast[ptr UncheckedArray[uint8]](f.mem)) == (JPG, 100, 100)
+
+test "get size JPG in binary format":
+  let f = memfiles.open("tests/images/FFD8FFDB2.jpg", mode = fmRead, mappedSize = -1)
+
+  check getImageTypeSize(cast[ptr UncheckedArray[uint8]](f.mem), 1) == (JPG, 100, 100)
+
+test "get size without JFIF or Exif":
+  let f = memfiles.open("tests/images/FFD8FFDB.jpeg", mode = fmRead, mappedSize = -1)
+
+  check getImageTypeSize(cast[ptr UncheckedArray[uint8]](f.mem)) == (JPG, 100, 100)
+
+test "get size GIF89a":
+  let f = memfiles.open("tests/images/test.gif", mode = fmRead, mappedSize = -1)
+  check getImageTypeSize(cast[ptr UncheckedArray[uint8]](f.mem)) == (GIF, 100, 100)

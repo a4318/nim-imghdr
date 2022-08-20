@@ -118,11 +118,11 @@ proc testPNG(value : seq[int8]): ImageType =
     # tests: "\211PNG\r\n"
     return if value[1..3] == "PNG" and value[4] == 13 and value[5] == 10: PNG else: Other
 
-var PNGmagic = [0x89.uint8, 0x50, 0x4e, 0x47]
+var PNGmagic = [0x89.uint8, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
 
 proc checkPNG(value : ptr UncheckedArray[uint8], pos: Natural = 0): ImageType =
     # tests: "\211PNG\r\n" 89 50 4E 47
-    return if equalMem(value[pos].addr, PNGmagic[0].addr, 4): PNG else: Other
+    return if equalMem(value[pos].addr, PNGmagic[0].addr, 8): PNG else: Other
 
 
 proc testJFIF(value : seq[int8]): ImageType =
@@ -937,6 +937,75 @@ proc checkImage*(data : ptr UncheckedArray[uint8], pos: Natural = 0): ImageType 
         if a != Other:
             return a
     return Other
+
+proc readBig32(src: ptr UncheckedArray[uint8], ip: Natural): uint32 {.inline.} =
+  var temparray: array[4, byte]
+  temparray[3] = src[ip]
+  temparray[2] = src[ip+1]
+  temparray[1] = src[ip+2]
+  temparray[0] = src[ip+3]
+  result = move(cast[ptr uint32](addr temparray[0])[])
+
+proc readBig16(src: ptr UncheckedArray[uint8], ip: Natural): uint16 {.inline.} =
+  var temparray: array[2, byte]
+  temparray[1] = src[ip]
+  temparray[0] = src[ip+1]
+  result = move(cast[ptr uint16](addr temparray[0])[])
+
+proc read16(data: ptr UncheckedArray[uint8], pos: Natural): uint16 {.inline.} =
+  copyMem(result.addr, data[pos].unsafeAddr, 2)
+
+proc getJPGSize*(data : ptr UncheckedArray[uint8], pos: Natural = 0) : (int, int) =
+    var off = pos
+    var size = 2.uint16
+    var ftype = 0
+    while 0xc0 > ftype or ftype > 0xcf:
+        off += size
+        var bytes = data[off]
+        off += 1
+        while ord(bytes) == 0xff:
+            bytes = data[off]
+            off += 1
+        ftype = ord(bytes)
+        size = data.readBig16(off) - 2.uint16
+        off += 2
+    # We are at a SOFn block
+    off += 1  # Skip `precision' byte.
+    let height = data.readBig16(off)
+    let width = data.readBig16(off + 2)
+    return (width.int, height.int)
+
+proc getPNGSize*(data : ptr UncheckedArray[uint8], pos: Natural = 0) : (int, int) =
+    let width = readBig32(data, pos + 16).int
+    let height = readBig32(data, pos + 20).int
+    return (width, height)
+
+proc getGIFSize*(data : ptr UncheckedArray[uint8], pos: Natural = 0) : (int, int) =
+    let width = read16(data, pos + 6).int
+    let height = read16(data, pos + 8).int
+    return (width, height)
+
+proc getImageSize*(data : ptr UncheckedArray[uint8], pos: Natural = 0, format: ImageType): (int, int) =
+    case format
+    of JPG:
+        return getJPGSize(data, pos)
+    of PNG:
+        return getPNGSize(data, pos)
+    of GIF:
+        return getGIFSize(data, pos)
+    else:
+        return (-1, -1)
+
+# only support gif, png, jpeg
+proc getImageTypeSize*(data : ptr UncheckedArray[uint8], pos: Natural = 0): (ImageType, int, int) =
+    let checkers = @[checkJPEG, checkPNG, checkGIF]
+
+    for checker in checkers:
+        let a = checker(data, pos)
+        if a != Other:
+            let (width, height) = getImageSize(data, pos, a)
+            return (a, width, height)
+    return (Other, -1, -1)
 
 
 # When run as it's own program, determine the type of the provided image file:
