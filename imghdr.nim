@@ -141,12 +141,15 @@ var noexif = [0xFF.uint8, 0xD8, 0xFF, 0xDB]
 
 var noexif2 = [0xFF.uint8, 0xD8, 0xFF, 0xEE]
 
+var noexif3 = [0xFF.uint8, 0xD8, 0xFF, 0xED]
+
 proc checkJPEG*(value : ptr UncheckedArray[uint8], pos: Natural): ImageType =
     # tests: "JFIF" 4a,46,49,46
     # tests: "Exif" 45,78,69,66
     # tests: FFD8FFDB
-     # tests: FFD8FFEE
-    return if equalMem(value[pos + 6].addr, JFIFmagic[0].addr, 4) or equalMem(value[pos + 6].addr, EXIFmagic[0].addr, 4) or equalMem(value[pos].addr, noexif[0].addr, 4) or equalMem(value[pos].addr, noexif2[0].addr, 4) : JPG else: Other
+    # tests: FFD8FFEE
+    # tests: FFD8FFED
+    return if equalMem(value[pos + 6].addr, JFIFmagic[0].addr, 4) or equalMem(value[pos + 6].addr, EXIFmagic[0].addr, 4) or equalMem(value[pos].addr, noexif[0].addr, 4) or equalMem(value[pos].addr, noexif2[0].addr, 4) or equalMem(value[pos].addr, noexif3[0].addr, 4) : JPG else: Other
 
 proc testEXIF(value : seq[int8]): ImageType =
     # tests: "Exif"
